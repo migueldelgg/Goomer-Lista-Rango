@@ -15,4 +15,6 @@ public interface RestaurantEntityRepository extends JpaRepository<RestaurantEnti
     @Query(value = "SELECT * FROM restaurant", nativeQuery = true)
     List<RestaurantEntity> getAllRestaurants();
 
+    @Query(value = "SELECT * FROM restaurant WHERE name = :name", nativeQuery = true)
+    String getRestaurantByName(String name);
 }
