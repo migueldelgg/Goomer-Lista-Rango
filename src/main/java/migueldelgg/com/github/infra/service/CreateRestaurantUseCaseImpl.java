@@ -2,8 +2,12 @@ package migueldelgg.com.github.infra.service;
 
 import java.util.UUID;
 
+import javax.swing.text.Utilities;
+
+import org.hibernate.mapping.List;
 import org.springframework.stereotype.Service;
 
+import migueldelgg.com.github.core.exception.SameDayException;
 import migueldelgg.com.github.infra.dtos.CreateRestaurantDTO;
 import migueldelgg.com.github.infra.entity.AddressEntity;
 import migueldelgg.com.github.infra.entity.OperationHoursEntity;
@@ -29,17 +33,9 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
 
     @Override
     public void createRestaurant(CreateRestaurantDTO dto) throws Exception {
-        String message = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd())
-            ? "O dia de ínicio e o dia final não podem ser iguais."
-            : dto.restaurantName()
-                .equals(restaurantRepo.getRestaurantByName(dto.restaurantName()))
-            ? "Esse nome de restaurante não está disponível."
-            : null;
 
-        if (message != null) {
-            throw new Exception(message);
-        }
-
+        restaurantExist(dto);
+        
         var address = AddressEntity.builder()
             .address(dto.address())
             .addressComplement(dto.addressComplement())
@@ -66,5 +62,18 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
             .isEnabled(true)
             .build();
         operationHoursRepo.save(operation);
+    }
+
+    public void restaurantExist(CreateRestaurantDTO dto){
+        String exMessage = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd()) 
+            ? "O dia de início e o dia final não podem ser iguais."
+            : dto.restaurantName()
+                .equals(restaurantRepo.getRestaurantByName(dto.restaurantName()))
+            ? "Esse nome de restaurante não está disponível."
+            : null;
+
+        if (exMessage != null) {
+            throw new SameDayException(exMessage);
+        }
     }
 }

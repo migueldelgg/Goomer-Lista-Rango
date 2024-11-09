@@ -45,8 +45,4 @@ public class RestaurantController {
         createRestaurantUseCase.createRestaurant(dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-    
-    
-    
-
 }
