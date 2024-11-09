@@ -32,7 +32,7 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     }
 
     @Override
-    public void createRestaurant(CreateRestaurantDTO dto) throws Exception {
+    public void execute(CreateRestaurantDTO dto) throws Exception {
 
         restaurantExist(dto);
         

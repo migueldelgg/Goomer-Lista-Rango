@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import migueldelgg.com.github.infra.dtos.RestaurantDataDTO;
 import migueldelgg.com.github.infra.entity.RestaurantEntity;
 
 @Repository
@@ -17,4 +18,7 @@ public interface RestaurantEntityRepository extends JpaRepository<RestaurantEnti
 
     @Query(value = "SELECT name FROM restaurant WHERE name = :inputName", nativeQuery = true)
     String getRestaurantByName(String inputName);
+    
+    @Query(value = "SELECT * FROM restaurant AS rest INNER JOIN address AS adr ON rest.address_id = adr.id WHERE rest.name = :inputName", nativeQuery = true)
+    Object getRestaurantDataByName(String inputName);
 }

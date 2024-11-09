@@ -20,6 +20,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import migueldelgg.com.github.infra.service.CreateRestaurantUseCaseImpl;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
+import migueldelgg.com.github.infra.dtos.RestaurantDataDTO;
+import migueldelgg.com.github.infra.service.RestaurantDataUseCaseImpl;
+
+
 
 
 @RestController
@@ -32,17 +38,27 @@ public class RestaurantController {
     @Autowired
     private CreateRestaurantUseCaseImpl createRestaurantUseCase;
 
+    @Autowired
+    private RestaurantDataUseCaseImpl restaurantDataUseCaseImpl;
+
     @GetMapping("/all")
     public ResponseEntity<List<RestaurantEntity>> listAllRestaurants() {
-        
         var response = listAllRestaurantsUseCase.execute();
-        
         return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/")
     public ResponseEntity<Void> postMethodName(@RequestBody CreateRestaurantDTO dto) throws Exception {
-        createRestaurantUseCase.createRestaurant(dto);
+        createRestaurantUseCase.execute(dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @GetMapping
+    public ResponseEntity<Object> getMethodName(@RequestParam String name) {
+
+        var body = restaurantDataUseCaseImpl.execute(name);
+
+        return ResponseEntity.ok(body);
+    }
+    
 }
