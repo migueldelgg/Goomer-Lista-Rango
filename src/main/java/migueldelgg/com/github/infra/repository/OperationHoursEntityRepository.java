@@ -9,5 +9,4 @@ import migueldelgg.com.github.infra.entity.OperationHoursEntity;
 
 @Repository
 public interface OperationHoursEntityRepository extends JpaRepository<OperationHoursEntity, UUID>{
-
 }

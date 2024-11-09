@@ -15,7 +15,6 @@ import migueldelgg.com.github.useCases.CreateRestaurantUseCase;
 
 @Service
 public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
-
     private final RestaurantEntityRepository restaurantRepo;
     private final AddresEntityRepository addressRepo;
     private final OperationHoursEntityRepository operationHoursRepo;
@@ -30,11 +29,15 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
 
     @Override
     public void createRestaurant(CreateRestaurantDTO dto) throws Exception {
-        if(dto.dayOfWeekStart().equals(dto.dayOfWeekEnd())) {
-            throw new Exception("O dia de começo e o dia de fim não podem ser iguais");
-        }
-        if(dto.restaurantName().equals(restaurantRepo.getRestaurantByName(dto.restaurantName()))){
-            throw new Exception("Esse nome de restaurante não está dispónivel.");
+        String message = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd())
+            ? "O dia de ínicio e o dia final não podem ser iguais."
+            : dto.restaurantName()
+                .equals(restaurantRepo.getRestaurantByName(dto.restaurantName()))
+            ? "Esse nome de restaurante não está disponível."
+            : null;
+
+        if (message != null) {
+            throw new Exception(message);
         }
 
         var address = AddressEntity.builder().address(dto.address())
