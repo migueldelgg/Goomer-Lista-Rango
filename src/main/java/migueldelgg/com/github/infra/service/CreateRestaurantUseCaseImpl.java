@@ -40,7 +40,8 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
             throw new Exception(message);
         }
 
-        var address = AddressEntity.builder().address(dto.address())
+        var address = AddressEntity.builder()
+            .address(dto.address())
             .addressComplement(dto.addressComplement())
             .city(dto.city())
             .state(dto.state())
@@ -66,7 +67,4 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
             .build();
         operationHoursRepo.save(operation);
     }
-
-    
-    
 }

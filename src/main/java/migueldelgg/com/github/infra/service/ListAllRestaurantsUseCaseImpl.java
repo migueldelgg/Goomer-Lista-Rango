@@ -13,17 +13,15 @@ import migueldelgg.com.github.useCases.ListAllRestaurantsUseCase;
 public class ListAllRestaurantsUseCaseImpl implements ListAllRestaurantsUseCase {
 
     private final RestaurantEntityRepository repository;
-
+    
     public ListAllRestaurantsUseCaseImpl(RestaurantEntityRepository repository) {
         this.repository = repository;
     }
 
     @Override
     public List<RestaurantEntity> execute() {
-        
         List<RestaurantEntity> response = repository.getAllRestaurants();
         Utilities.log.info("Lista de restaurantes => " + response);
-
         return response;
     }
 

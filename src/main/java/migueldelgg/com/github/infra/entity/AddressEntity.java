@@ -12,9 +12,9 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Data;
 
-@Entity
-@Builder
 @Data
+@Builder
+@Entity
 @Table(name = "address")
 public class AddressEntity {
 
@@ -43,4 +43,19 @@ public class AddressEntity {
 
     @Column(name = "zip_code")
     private String zipcode;
+
+    public AddressEntity() {}
+
+    public AddressEntity(UUID id, RestaurantEntity restaurant, String address, String addressComplement,
+                        String city, String state, String country, String zipcode) {
+        this.id = id;
+        this.restaurant = restaurant;
+        this.address = address;
+        this.addressComplement = addressComplement;
+        this.city = city;
+        this.state = state;
+        this.country = country;
+        this.zipcode = zipcode;
+    }
+
 }
