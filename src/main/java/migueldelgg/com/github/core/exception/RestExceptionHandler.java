@@ -17,4 +17,13 @@ public class RestExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    @ExceptionHandler(RestaurantNotFoundException.class)
+    public ResponseEntity<RestErrorMessage> handleRestaurantNotFoundException(RestaurantNotFoundException ex) {
+
+        RestErrorMessage response = new RestErrorMessage(404,
+            ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
 }

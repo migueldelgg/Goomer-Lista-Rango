@@ -1,7 +1,9 @@
 package migueldelgg.com.github.useCases;
 
-import migueldelgg.com.github.infra.dtos.RestaurantDataDTO;
+import java.util.Optional;
+
+import migueldelgg.com.github.infra.projections.RestaurantDataProjection;
 
 public interface RestaurantDataUseCase {
-    public Object execute(String restaurant);    
+    public Optional<RestaurantDataProjection> execute(String restaurant) throws Exception;    
 }

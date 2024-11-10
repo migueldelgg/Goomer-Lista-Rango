@@ -22,11 +22,7 @@ import migueldelgg.com.github.infra.service.CreateRestaurantUseCaseImpl;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
-import migueldelgg.com.github.infra.dtos.RestaurantDataDTO;
 import migueldelgg.com.github.infra.service.RestaurantDataUseCaseImpl;
-
-
-
 
 @RestController
 @RequestMapping("api/v1/restaurant")
@@ -48,17 +44,14 @@ public class RestaurantController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<Void> postMethodName(@RequestBody CreateRestaurantDTO dto) throws Exception {
+    public ResponseEntity<Void> create(@RequestBody CreateRestaurantDTO dto) throws Exception {
         createRestaurantUseCase.execute(dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping
-    public ResponseEntity<Object> getMethodName(@RequestParam String name) {
-
+    public ResponseEntity<Object> getRestaurantDetails(@RequestParam String name) throws Exception {
         var body = restaurantDataUseCaseImpl.execute(name);
-
         return ResponseEntity.ok(body);
     }
-    
 }
