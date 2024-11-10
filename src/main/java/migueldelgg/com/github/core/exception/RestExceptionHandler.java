@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class RestExceptionHandler {
@@ -25,5 +26,13 @@ public class RestExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+    
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<RestErrorMessage> handleNoResourceFoundException(NoResourceFoundException ex) {
 
+        RestErrorMessage response = new RestErrorMessage(404,
+            ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }
