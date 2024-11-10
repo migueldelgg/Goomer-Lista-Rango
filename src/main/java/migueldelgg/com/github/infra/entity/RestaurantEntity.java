@@ -3,6 +3,8 @@ package migueldelgg.com.github.infra.entity;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -22,7 +24,7 @@ import lombok.Data;
 @Builder
 @Data
 @Table(name = "restaurant")
-public class RestaurantEntity implements Serializable{
+public class RestaurantEntity extends RepresentationModel<RestaurantEntity> implements Serializable{
     
     private static final long serialVersionUID = 1L;
 

@@ -18,15 +18,16 @@ public class RestaurantDataUseCaseImpl implements RestaurantDataUseCase{
     }
 
     @Override
-    public Optional<RestaurantDataProjection> execute(String restaurant) throws Exception{
+    public RestaurantDataProjection execute(String restaurant) {
         restaurantExist(restaurant);
         var responseFromRepo = repository.getRestaurantDataByName(restaurant);
         System.out.println("O banco trouxe! Veja: "+ responseFromRepo);
         return responseFromRepo;
     }
 
-    public void restaurantExist(String restaurant) throws RestaurantNotFoundException {
-        var restaurantData = repository.getRestaurantDataByName(restaurant);
+    @Override
+    public void restaurantExist(String restaurant) {
+        var restaurantData = repository.getRestaurantByName(restaurant);
         if (restaurantData.isEmpty()) {
             throw new RestaurantNotFoundException("Restaurante não encontrado.");
         }

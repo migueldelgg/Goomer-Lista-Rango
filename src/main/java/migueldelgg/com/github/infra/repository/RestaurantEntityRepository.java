@@ -28,6 +28,5 @@ public interface RestaurantEntityRepository extends JpaRepository<RestaurantEnti
        "adr.zip_code AS zipCode FROM restaurant AS rest " +
        "INNER JOIN address AS adr ON rest.address_id = adr.id " +
        "WHERE rest.name = :inputName", nativeQuery = true)
-    Optional<RestaurantDataProjection> getRestaurantDataByName(@Param("inputName") String inputName);
-
+    RestaurantDataProjection getRestaurantDataByName(@Param("inputName") String inputName);
 }
