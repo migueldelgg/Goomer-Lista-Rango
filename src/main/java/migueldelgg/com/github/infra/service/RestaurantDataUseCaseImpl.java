@@ -1,6 +1,6 @@
 package migueldelgg.com.github.infra.service;
 
-import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -18,16 +18,22 @@ public class RestaurantDataUseCaseImpl implements RestaurantDataUseCase{
     }
 
     @Override
-    public RestaurantDataProjection execute(String restaurant) {
-        restaurantExist(restaurant);
-        var responseFromRepo = repository.getRestaurantDataByName(restaurant);
-        System.out.println("O banco trouxe! Veja: "+ responseFromRepo);
+    public RestaurantDataProjection execute(String uuid) {
+        restaurantExist(uuid);
+        UUID restId = UUID.fromString(uuid);
+        var responseFromRepo = repository.getRestaurantDataById(restId);
+
+        System.out.println("O uuid e esse => "+ uuid);
+        System.out.println("O responseFromRepo e esse => "+ responseFromRepo);
         return responseFromRepo;
     }
 
     @Override
-    public void restaurantExist(String restaurant) {
-        var restaurantData = repository.getRestaurantByName(restaurant);
+    public void restaurantExist(String uuid) {
+        UUID id = UUID.fromString(uuid);
+        var restaurantData = repository.getRestaurantNameById(id);
+        System.out.println("O uuid e esse => "+ id);
+        System.out.println("O responseFromRepo e esse => "+ restaurantData);
         if (restaurantData.isEmpty()) {
             throw new RestaurantNotFoundException("Restaurante não encontrado.");
         }
