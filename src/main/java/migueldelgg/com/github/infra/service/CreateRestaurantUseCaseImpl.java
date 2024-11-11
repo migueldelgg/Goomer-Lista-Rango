@@ -2,9 +2,6 @@ package migueldelgg.com.github.infra.service;
 
 import java.util.UUID;
 
-import javax.swing.text.Utilities;
-
-import org.hibernate.mapping.List;
 import org.springframework.stereotype.Service;
 
 import migueldelgg.com.github.core.exception.SameDayException;
@@ -32,7 +29,7 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     }
 
     @Override
-    public void execute(CreateRestaurantDTO dto) throws Exception {
+    public void execute(CreateRestaurantDTO dto) {
 
         restaurantExist(dto);
         

@@ -1,6 +1,6 @@
 package migueldelgg.com.github.core.exception;
 
-public class RestaurantNotFoundException extends Exception{
+public class RestaurantNotFoundException extends RuntimeException{
     public RestaurantNotFoundException() {
         super();
     }
