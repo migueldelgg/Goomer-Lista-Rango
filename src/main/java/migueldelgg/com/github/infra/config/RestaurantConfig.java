@@ -24,7 +24,7 @@ public class RestaurantConfig {
             AddresEntityRepository addressRepository,
             OperationHoursEntityRepository operationHoursRepository,
             RestaurantEntityRepository restaurantRepository) {
-        return new CreateRestaurantUseCaseImpl(addressRepository, operationHoursRepository, restaurantRepository);
+        return new CreateRestaurantUseCaseImpl(addressRepository, operationHoursRepository, restaurantRepository, null);
     }
 
 }

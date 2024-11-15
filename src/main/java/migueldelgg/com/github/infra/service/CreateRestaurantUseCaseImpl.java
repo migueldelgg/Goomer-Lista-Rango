@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import migueldelgg.com.github.core.exception.SameDayException;
-import migueldelgg.com.github.infra.dtos.CreateRestaurantDTO;
+import migueldelgg.com.github.infra.dtos.CreateRestaurantRequestBody;
 import migueldelgg.com.github.infra.entity.AddressEntity;
 import migueldelgg.com.github.infra.entity.OperationHoursEntity;
 import migueldelgg.com.github.infra.entity.RestaurantEntity;
@@ -19,49 +19,67 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     private final RestaurantEntityRepository restaurantRepo;
     private final AddresEntityRepository addressRepo;
     private final OperationHoursEntityRepository operationHoursRepo;
+    private final ViaCepHttpCall viaCepHttpCall;
 
     public CreateRestaurantUseCaseImpl(AddresEntityRepository addressRepo, 
-        OperationHoursEntityRepository operationHoursRepo,
-        RestaurantEntityRepository restaurantRepo) {
+        OperationHoursEntityRepository operationHoursRepo, 
+        RestaurantEntityRepository restaurantRepo, 
+        migueldelgg.com.github.infra.service.ViaCepHttpCall viaCepHttpCall) {
             this.addressRepo = addressRepo;
             this.operationHoursRepo = operationHoursRepo;
             this.restaurantRepo = restaurantRepo;
+            this.viaCepHttpCall = viaCepHttpCall;
     }
 
     @Override
-    public void execute(CreateRestaurantDTO dto) {
+    public void execute(CreateRestaurantRequestBody requestBody) {
 
-        restaurantExist(dto);
+        var viaCepResult = viaCepHttpCall.execute(requestBody.cep());
+        String addressConstructor = viaCepResult.street() + ", "+ requestBody.number();
+
+        restaurantExist(requestBody);
         
         var address = AddressEntity.builder()
-            .address(dto.address())
-            .addressComplement(dto.addressComplement())
-            .city(dto.city())
-            .state(dto.state())
-            .country(dto.country())
-            .zipcode(dto.zipcode())
+            .id(UUID.randomUUID())
+            .address(addressConstructor)
+            .addressComplement(requestBody.addressComplement())
+            .city(viaCepResult.city())
+            .state(viaCepResult.state())
+            .country(requestBody.country())
+            .zipcode(viaCepResult.cep())
             .build();
-        addressRepo.save(address);
 
-        var restaurant = RestaurantEntity.builder().id(UUID.randomUUID())
-            .name(dto.restaurantName())
-            .photo(dto.restaurantPhoto())
+        var restaurant = RestaurantEntity.builder()
+            .id(UUID.randomUUID())
+            .name(requestBody.restaurantName())
+            .photo(requestBody.restaurantPhoto())
             .address(address)
             .build();
-        restaurantRepo.save(restaurant);
 
         var operation = OperationHoursEntity.builder()
+            .id(UUID.randomUUID())
             .restaurant(restaurant)
-            .dayOfWeekStart(dto.dayOfWeekStart())
-            .dayOfWeekEnd(dto.dayOfWeekEnd())
-            .startTime(dto.startTime())
-            .endTime(dto.endTime())
+            .dayOfWeekStart(requestBody.dayOfWeekStart())
+            .dayOfWeekEnd(requestBody.dayOfWeekEnd())
+            .startTime(requestBody.startTime())
+            .endTime(requestBody.endTime())
             .isEnabled(true)
             .build();
-        operationHoursRepo.save(operation);
+
+        addressRepo.saveAndFlush(address);
+        restaurantRepo.saveAndFlush(restaurant);
+        operationHoursRepo.saveAndFlush(operation);
+
+        System.out.println("address => "+ address);
+        System.out.println("restaurant => "+ restaurant);
+        System.out.println("operation => "+ operation);
     }
 
-    public void restaurantExist(CreateRestaurantDTO dto){
+    public void restaurantExist(CreateRestaurantRequestBody dto){
+
+        var restauranteDoRepo = restaurantRepo.getRestaurantByName(dto.restaurantName());
+        System.out.println("RESTAURANTE DO REPO: "+ restauranteDoRepo);
+
         String exMessage = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd()) 
             ? "O dia de início e o dia final não podem ser iguais."
             : dto.restaurantName()

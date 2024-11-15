@@ -11,40 +11,44 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import migueldelgg.com.github.core.exception.ViaCepException;
 import migueldelgg.com.github.infra.dtos.ViaCepResponse;
 
 @Service
 public class ViaCepHttpCall {
     
-    public void execute(String cep) throws IOException, InterruptedException {
-        String url = 
-        String.format("https://brasilapi.com.br/api/cep/v1/%s",
-        cep);
+    public ViaCepResponse execute(String cep) {
+        String url = String.format("https://brasilapi.com.br/api/cep/v1/%s", cep);
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .GET()
-            .build();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
 
-        HttpResponse<String> response = HttpClient.newHttpClient()
-            .send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                .send(request, HttpResponse.BodyHandlers.ofString());
 
-        var objeto = convertToViaCepResponse(response);
-
-        System.out.println("Response => "+ objeto);
+            return convertToViaCepResponse(response);
+        } catch (IOException | InterruptedException e) {
+            throw new ViaCepException("Error while calling ViaCep API", e);
+        }
     }
 
     public static ViaCepResponse convertToViaCepResponse(HttpResponse<String> response) {
-        JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
-        var cep = jsonObject.get("cep").getAsString();
-        var state = jsonObject.get("state").getAsString();
-        var city = jsonObject.get("city").getAsString();
-        var neighborhood = jsonObject.get("neighborhood").getAsString();
-        var street = jsonObject.get("street").getAsString();
-        var service = jsonObject.get("service").getAsString();
+        if (response.statusCode() == 404) {
+            throw new IllegalArgumentException("CEP not found");
+        }
 
-        ViaCepResponse viaCepResponse = new ViaCepResponse(cep, state, city, neighborhood, street, service);
-        return viaCepResponse; 
+        JsonObject jsonObject = JsonParser.parseString(response.body()).getAsJsonObject();
+        String cep = jsonObject.get("cep").getAsString();
+        String state = jsonObject.get("state").getAsString();
+        String city = jsonObject.get("city").getAsString();
+        String neighborhood = jsonObject.get("neighborhood").getAsString();
+        String street = jsonObject.get("street").getAsString();
+        String service = jsonObject.get("service").getAsString();
+        
+        return new ViaCepResponse(cep, state, city, neighborhood, street, service);
     }
 
 }

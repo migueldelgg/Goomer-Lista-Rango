@@ -54,4 +54,12 @@ public class RestExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
+    @ExceptionHandler(ViaCepException.class)
+    public ResponseEntity<RestErrorMessage> handleViaCepException(ViaCepException ex) {
+        RestErrorMessage response = new RestErrorMessage(500, 
+            ex.getMessage());
+            
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
