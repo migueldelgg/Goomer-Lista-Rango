@@ -1,7 +1,5 @@
 package migueldelgg.com.github.infra.service;
 
-import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 
 import migueldelgg.com.github.core.exception.SameDayException;
@@ -16,6 +14,7 @@ import migueldelgg.com.github.useCases.CreateRestaurantUseCase;
 
 @Service
 public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
+
     private final RestaurantEntityRepository restaurantRepo;
     private final AddresEntityRepository addressRepo;
     private final OperationHoursEntityRepository operationHoursRepo;
@@ -36,11 +35,8 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
 
         var viaCepResult = viaCepHttpCall.execute(requestBody.cep());
         String addressConstructor = viaCepResult.street() + ", "+ requestBody.number();
-
-        restaurantExist(requestBody);
         
         var address = AddressEntity.builder()
-            .id(UUID.randomUUID())
             .address(addressConstructor)
             .addressComplement(requestBody.addressComplement())
             .city(viaCepResult.city())
@@ -50,14 +46,12 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
             .build();
 
         var restaurant = RestaurantEntity.builder()
-            .id(UUID.randomUUID())
             .name(requestBody.restaurantName())
             .photo(requestBody.restaurantPhoto())
             .address(address)
             .build();
 
         var operation = OperationHoursEntity.builder()
-            .id(UUID.randomUUID())
             .restaurant(restaurant)
             .dayOfWeekStart(requestBody.dayOfWeekStart())
             .dayOfWeekEnd(requestBody.dayOfWeekEnd())
@@ -70,22 +64,22 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
         restaurantRepo.saveAndFlush(restaurant);
         operationHoursRepo.saveAndFlush(operation);
 
-        System.out.println("address => "+ address);
-        System.out.println("restaurant => "+ restaurant);
-        System.out.println("operation => "+ operation);
+        System.out.println("address => " + address);
+        System.out.println("restaurant => " + restaurant);
+        System.out.println("operation => " + operation);
     }
 
-    public void restaurantExist(CreateRestaurantRequestBody dto){
+    public void validateRestaurant(CreateRestaurantRequestBody dto) {
+        var restFromRepository = restaurantRepo.getRestaurantByName(dto.restaurantName());
 
-        var restauranteDoRepo = restaurantRepo.getRestaurantByName(dto.restaurantName());
-        System.out.println("RESTAURANTE DO REPO: "+ restauranteDoRepo);
-
-        String exMessage = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd()) 
-            ? "O dia de início e o dia final não podem ser iguais."
-            : dto.restaurantName()
-                .equals(restaurantRepo.getRestaurantByName(dto.restaurantName()))
-            ? "Esse nome de restaurante não está disponível."
-            : null;
+        String exMessage = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd())
+                ? "O dia de início e o dia final não podem ser iguais."
+                : dto.restaurantName()
+                .equals(restFromRepository)
+                ? "Esse nome de restaurante não está disponível."
+                : !dto.startTime().isBefore(dto.endTime())
+                ? "Horário de funcionamento inválido."
+                : null;
 
         if (exMessage != null) {
             throw new SameDayException(exMessage);
