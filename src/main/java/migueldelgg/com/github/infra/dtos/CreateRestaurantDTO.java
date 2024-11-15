@@ -9,5 +9,4 @@ public record CreateRestaurantDTO(String restaurantName, String restaurantPhoto,
     String city, String state, String country, String zipcode,
     WeekDay dayOfWeekStart, WeekDay dayOfWeekEnd,
     LocalTime startTime, LocalTime endTime) {
-    
 }

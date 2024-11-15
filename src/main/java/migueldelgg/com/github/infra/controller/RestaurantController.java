@@ -1,5 +1,6 @@
 package migueldelgg.com.github.infra.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,15 @@ import migueldelgg.com.github.infra.entity.RestaurantEntity;
 import migueldelgg.com.github.infra.projections.RestaurantDataProjection;
 import migueldelgg.com.github.infra.service.CreateRestaurantUseCaseImpl;
 import migueldelgg.com.github.infra.service.RestaurantDataUseCaseImpl;
+import migueldelgg.com.github.infra.service.ViaCepHttpCall;
 import migueldelgg.com.github.useCases.ListAllRestaurantsUseCase;
 
 @RestController
 @RequestMapping("api/v1/restaurants")
 public class RestaurantController {
+
+    @Autowired
+    private ViaCepHttpCall call;
     
     @Autowired
     private ListAllRestaurantsUseCase listAllRestaurantsUseCase;
@@ -55,6 +60,13 @@ public class RestaurantController {
 
     @GetMapping("/{uuid}")
     public ResponseEntity<EntityModel<RestaurantDataProjection>> getRestaurantDetails(@PathVariable String uuid) {
+
+        try {
+            call.execute("07023000");
+        } catch (IOException ex) {
+        } catch (InterruptedException ex) {
+        }
+
         var body = restaurantDataUseCaseImpl.execute(uuid);
         EntityModel<RestaurantDataProjection> model = EntityModel.of(body);
         model.add(linkTo(methodOn(RestaurantController.class)
