@@ -41,4 +41,20 @@ public class OperationHoursEntity implements Serializable {
 
     @Column(name = "is_enabled", nullable = false)
     private boolean isEnabled;
+
+    public OperationHoursEntity(UUID id, RestaurantEntity restaurant, WeekDay dayOfWeekStart, WeekDay dayOfWeekEnd,
+            LocalTime startTime, LocalTime endTime, boolean isEnabled) {
+        this.id = id;
+        this.restaurant = restaurant;
+        this.dayOfWeekStart = dayOfWeekStart;
+        this.dayOfWeekEnd = dayOfWeekEnd;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.isEnabled = isEnabled;
+    }
+
+    public OperationHoursEntity() {
+    }
+
+    
 }

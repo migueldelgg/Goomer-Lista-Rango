@@ -1,6 +1,7 @@
 package migueldelgg.com.github.infra.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,9 @@ public interface RestaurantEntityRepository extends JpaRepository<RestaurantEnti
 
     @Query(value = "SELECT name FROM restaurant WHERE name = :inputName", nativeQuery = true)
     String getRestaurantByName(String inputName);
+
+    @Query(value = "SELECT name FROM restaurant WHERE name = :inputName", nativeQuery = true)
+    Optional<String> optionalGetRestaurantByName(String inputName);
 
     @Query(value = "SELECT name FROM restaurant WHERE id = :restaurantId", nativeQuery = true)
     String getRestaurantNameById(UUID restaurantId);
