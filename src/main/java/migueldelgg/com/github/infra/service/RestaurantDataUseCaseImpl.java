@@ -22,9 +22,6 @@ public class RestaurantDataUseCaseImpl implements RestaurantDataUseCase{
         restaurantExist(uuid);
         UUID restId = UUID.fromString(uuid);
         var responseFromRepo = repository.getRestaurantDataById(restId);
-
-        System.out.println("O uuid e esse => "+ uuid);
-        System.out.println("O responseFromRepo e esse => "+ responseFromRepo);
         return responseFromRepo;
     }
 
@@ -32,8 +29,6 @@ public class RestaurantDataUseCaseImpl implements RestaurantDataUseCase{
     public void restaurantExist(String uuid) {
         UUID id = UUID.fromString(uuid);
         var restaurantData = repository.getRestaurantNameById(id);
-        System.out.println("O uuid e esse => "+ id);
-        System.out.println("O responseFromRepo e esse => "+ restaurantData);
         if (restaurantData.isEmpty()) {
             throw new RestaurantNotFoundException("Restaurante não encontrado.");
         }
