@@ -10,7 +10,6 @@ public record CreateRestaurantRequestBody(
     String restaurantPhoto,
     String addressComplement,
     String number,
-    @Pattern(regexp = "\\d{8}", message = "O CEP deve conter exatamente 8 dígitos numéricos")
     String cep,
     String country,
     WeekDay dayOfWeekStart,

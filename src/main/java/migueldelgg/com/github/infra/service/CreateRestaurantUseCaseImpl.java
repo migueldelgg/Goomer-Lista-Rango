@@ -1,6 +1,8 @@
 package migueldelgg.com.github.infra.service;
 
 import migueldelgg.com.github.infra.entity.WeekDay;
+import migueldelgg.com.github.infra.utils.ValidationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import migueldelgg.com.github.core.exception.SameDayException;
@@ -23,6 +25,9 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     private final OperationHoursEntityRepository operationHoursRepo;
     private final ViaCepHttpCall viaCepHttpCall;
 
+    @Autowired
+    private RestaurantValidationService validationService;
+
     public CreateRestaurantUseCaseImpl(AddresEntityRepository addressRepo,
         OperationHoursEntityRepository operationHoursRepo,
         RestaurantEntityRepository restaurantRepo,
@@ -35,6 +40,9 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
 
     @Override
     public void execute(CreateRestaurantRequestBody requestBody) {
+
+        validateRestaurant(requestBody);
+
         var viaCepResult = viaCepHttpCall.execute(requestBody.cep());
         String addressConstructor = viaCepResult.street() + ", "+ requestBody.number();
         
@@ -67,39 +75,20 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
         operationHoursRepo.saveAndFlush(operation);
     }
 
-    //passar as verificações para um método separado fazer o SRP(single responsability)
     public void validateRestaurant(CreateRestaurantRequestBody dto) {
         String errorMessage = null;
 
-        if(isTheSameWeekDay(dto.dayOfWeekStart(), dto.dayOfWeekEnd()))
+        if(ValidationUtils.isTheSameWeekDay(dto.dayOfWeekStart(), dto.dayOfWeekEnd()))
             errorMessage = "O dia de início e o dia final não podem ser iguais.";
 
-        if(restaurantNameAlreadyExist(dto.restaurantName()))
+        if(validationService.restaurantNameAlreadyExist(dto.restaurantName()) == true)
             errorMessage = "Esse nome de restaurante não está disponível.";
 
-        if(endTimeIsBeforeStartTime(dto.startTime(), dto.endTime()))
+        if(ValidationUtils.endTimeIsBeforeStartTime(dto.startTime(), dto.endTime()))
             errorMessage = "Horário de funcionamento inválido";
 
         if (errorMessage != null) {
             throw new SameDayException(errorMessage);
         }
-    }
-    //Validacoes
-    // 1. dia de inicio nao pode ser igual ao dia final
-    // 2. o nome do restaurante nao pode ser igual a outro já registrado.
-    // 3. o endTime não pode ser anterior ao startTime
-    private Boolean isTheSameWeekDay(WeekDay dayOfWeekStart, WeekDay dayOfWeekEnd) {
-        return dayOfWeekStart.equals(dayOfWeekEnd);
-    }
-
-    private Boolean restaurantNameAlreadyExist(String restaurantName){
-        return restaurantRepo.getRestaurantByName(restaurantName) != null;
-    }
-
-    private Boolean endTimeIsBeforeStartTime(
-            LocalTime startTime,
-            LocalTime endTime
-    ){
-        return !startTime.isBefore(endTime);
     }
 }
