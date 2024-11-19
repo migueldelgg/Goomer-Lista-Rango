@@ -4,7 +4,6 @@ import migueldelgg.com.github.core.exception.RestaurantNotFoundException;
 import migueldelgg.com.github.core.exception.SameDayException;
 import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataRequestDTO;
 import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataResponseDTO;
-import migueldelgg.com.github.infra.dtos.CreateRestaurantRequestBody;
 import migueldelgg.com.github.infra.dtos.ViaCepResponse;
 import migueldelgg.com.github.infra.entity.AddressEntity;
 import migueldelgg.com.github.infra.entity.OperationHoursEntity;
@@ -14,24 +13,20 @@ import migueldelgg.com.github.infra.repository.OperationHoursEntityRepository;
 import migueldelgg.com.github.infra.repository.RestaurantEntityRepository;
 import migueldelgg.com.github.infra.utils.ValidationUtils;
 import migueldelgg.com.github.useCases.ChangeRestaurantDataUseCase;
+import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.lang.reflect.Field;
 import java.util.UUID;
 
+@Service
 public class ChangeRestaurantDataUseCaseImpl implements ChangeRestaurantDataUseCase {
 
     private final RestaurantEntityRepository restaurantRepo;
-    private final AddresEntityRepository addressRepo;
     private final OperationHoursEntityRepository operationHoursRepo;
-    private final ViaCepHttpCall viaCepHttpCall;
-    private final RestaurantValidationService validationService;
 
-    public ChangeRestaurantDataUseCaseImpl(RestaurantEntityRepository restaurantRepo, AddresEntityRepository addressRepo, OperationHoursEntityRepository operationHoursRepo, ViaCepHttpCall viaCepHttpCall, RestaurantValidationService validationService) {
+    public ChangeRestaurantDataUseCaseImpl(RestaurantEntityRepository restaurantRepo, OperationHoursEntityRepository operationHoursRepo) {
         this.restaurantRepo = restaurantRepo;
-        this.addressRepo = addressRepo;
         this.operationHoursRepo = operationHoursRepo;
-        this.viaCepHttpCall = viaCepHttpCall;
-        this.validationService = validationService;
     }
 
     /*Refatorar depois, se eu passar null como ficaria o validateRestaurant? */
@@ -41,41 +36,16 @@ public class ChangeRestaurantDataUseCaseImpl implements ChangeRestaurantDataUseC
         validateRestaurant(requestBody);
 
         // Buscar os dados existentes
+        System.out.println("FOTO FIELD =>" + requestBody.getPhoto());
+
         RestaurantEntity restaurant = getRestaurantEntity(uuid);
-        AddressEntity address = getAddressEntity(restaurant.getAddress().getId());
         OperationHoursEntity operationHours = getOperationHoursEntity(uuid);
 
-        // Atualizar apenas os campos preenchidos no DTO
-        if (requestBody.getRestaurantPhoto() != null) {
-            restaurant.setPhoto(requestBody.getRestaurantPhoto());
-        }
-
-        if (requestBody.getAddressComplement() != null) {
-            address.setAddressComplement(requestBody.getAddressComplement());
-        }
-        if (requestBody.getNumber() != null || requestBody.getCep() != null) {
-            ViaCepResponse viaCepResponse = viaCepHttpCall.execute(requestBody.getCep());
-            String newAddress = viaCepResponse.street() + ", " + requestBody.getNumber();
-            address.setAddress(newAddress);
-            address.setCity(viaCepResponse.city());
-            address.setState(viaCepResponse.state());
-            address.setZipcode(viaCepResponse.cep());
-            address.setCountry(requestBody.getCountry());
-        }
-
-        if (requestBody.getDayOfWeekStart() != null && requestBody.getDayOfWeekEnd() != null) {
-            operationHours.setDayOfWeekStart(requestBody.getDayOfWeekStart());
-            operationHours.setDayOfWeekEnd(requestBody.getDayOfWeekEnd());
-        }
-
-        if (requestBody.getStartTime() != null && requestBody.getEndTime() != null) {
-            operationHours.setStartTime(requestBody.getStartTime());
-            operationHours.setEndTime(requestBody.getEndTime());
-        }
+        updateEntityFromRequest(requestBody, restaurant);
+        updateEntityFromRequest(requestBody, operationHours);
 
         // Salvar entidades
         restaurantRepo.save(restaurant);
-        addressRepo.save(address);
         operationHoursRepo.save(operationHours);
 
         return new ChangeRestaurantDataResponseDTO("Atualizado com sucesso!");
@@ -85,11 +55,6 @@ public class ChangeRestaurantDataUseCaseImpl implements ChangeRestaurantDataUseC
     private RestaurantEntity getRestaurantEntity(String restaurantUUID) {
         return restaurantRepo.findById(UUID.fromString(restaurantUUID))
                 .orElseThrow(() -> new RestaurantNotFoundException("Restaurante não encontrado"));
-    }
-
-    private AddressEntity getAddressEntity(UUID addressUUID){
-        return addressRepo.findById(addressUUID)
-                        .orElseThrow(() -> new RestaurantNotFoundException("Endeço não encontrado"));
     }
 
     private OperationHoursEntity getOperationHoursEntity(String restaurantUUID){
@@ -110,4 +75,30 @@ public class ChangeRestaurantDataUseCaseImpl implements ChangeRestaurantDataUseC
             throw new SameDayException(errorMessage);
         }
     }
+
+    public void updateEntityFromRequest(Object source, Object target) {
+        if (source == null || target == null) {
+            throw new IllegalArgumentException("Fonte e destino não podem ser nulos");
+        }
+
+        Field[] fields = source.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true); // Permite acesso a campos privados
+            try {
+                Object value = field.get(source);
+                if (value != null) { // Apenas atualiza se o campo não for nulo
+                    Field targetField = target.getClass().getDeclaredField(field.getName());
+                    targetField.setAccessible(true);
+                    System.out.println("value => "+ value);
+                    System.out.println("target => "+ target);
+                    System.out.println("targetField => "+ targetField);
+                    targetField.set(target, value);
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.out.println("Exception capturada");
+            }
+        }
+
+    }
+
 }

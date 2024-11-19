@@ -14,11 +14,7 @@ import java.time.LocalTime;
 @Setter
 public class ChangeRestaurantDataRequestDTO {
 
-    private String restaurantPhoto;
-    private String addressComplement;
-    private String number;
-    private String cep;
-    private String country;
+    private String photo;
     private WeekDay dayOfWeekStart;
     private WeekDay dayOfWeekEnd;
     private LocalTime startTime;

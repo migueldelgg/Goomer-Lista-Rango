@@ -3,6 +3,9 @@ package migueldelgg.com.github.infra.controller;
 import java.util.List;
 import java.util.UUID;
 
+import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataRequestDTO;
+import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataResponseDTO;
+import migueldelgg.com.github.infra.service.ChangeRestaurantDataUseCaseImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -30,6 +33,9 @@ public class RestaurantController {
 
     @Autowired
     private RestaurantDataUseCaseImpl restaurantDataUseCaseImpl;
+
+    @Autowired
+    private ChangeRestaurantDataUseCaseImpl changeRestaurantDataUseCase;
 
     @GetMapping
     public ResponseEntity<List<RestaurantEntity>> listAllRestaurants() {
@@ -59,5 +65,14 @@ public class RestaurantController {
                 .listAllRestaurants())
                 .withRel(IanaLinkRelations.COLLECTION));
         return ResponseEntity.ok(model);
+    }
+
+    @PatchMapping("/{uuid}")
+    public ResponseEntity<ChangeRestaurantDataResponseDTO> changeRestaurantData(
+            @PathVariable String uuid, @RequestBody
+            ChangeRestaurantDataRequestDTO requestBody
+    ) {
+        var response = changeRestaurantDataUseCase.execute(requestBody, uuid);
+        return ResponseEntity.ok().body(response);
     }
 }
