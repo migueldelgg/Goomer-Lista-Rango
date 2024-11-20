@@ -4,11 +4,8 @@ import migueldelgg.com.github.core.exception.RestaurantNotFoundException;
 import migueldelgg.com.github.core.exception.SameDayException;
 import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataRequestDTO;
 import migueldelgg.com.github.infra.dtos.ChangeRestaurantDataResponseDTO;
-import migueldelgg.com.github.infra.dtos.ViaCepResponse;
-import migueldelgg.com.github.infra.entity.AddressEntity;
 import migueldelgg.com.github.infra.entity.OperationHoursEntity;
 import migueldelgg.com.github.infra.entity.RestaurantEntity;
-import migueldelgg.com.github.infra.repository.AddresEntityRepository;
 import migueldelgg.com.github.infra.repository.OperationHoursEntityRepository;
 import migueldelgg.com.github.infra.repository.RestaurantEntityRepository;
 import migueldelgg.com.github.infra.utils.ValidationUtils;
@@ -65,36 +62,50 @@ public class ChangeRestaurantDataUseCaseImpl implements ChangeRestaurantDataUseC
     public void validateRestaurant(ChangeRestaurantDataRequestDTO dto) {
         String errorMessage = null;
 
-        if(ValidationUtils.isTheSameWeekDay(dto.getDayOfWeekStart(), dto.getDayOfWeekEnd()))
-            errorMessage = "O dia de início e o dia final não podem ser iguais.";
+        if(!ValidationUtils.isStartTimeAndEndTimeNull(dto.getStartTime(), dto.getEndTime())) {
+            if(ValidationUtils.endTimeIsBeforeStartTime(dto.getStartTime(), dto.getEndTime()))
+                errorMessage = "Horário de funcionamento inválido";
+        }
 
-        if(ValidationUtils.endTimeIsBeforeStartTime(dto.getStartTime(), dto.getEndTime()))
-            errorMessage = "Horário de funcionamento inválido";
+        if(!ValidationUtils.isStartWeekDayAndEndWeekDayNull(dto.getDayOfWeekStart(), dto.getDayOfWeekEnd())) {
+            if(ValidationUtils.isTheSameWeekDay(dto.getDayOfWeekStart(), dto.getDayOfWeekEnd()))
+                errorMessage = "O dia de início e o dia final não podem ser iguais.";
+        }
 
         if (errorMessage != null) {
             throw new SameDayException(errorMessage);
         }
     }
 
-    public void updateEntityFromRequest(Object source, Object target) {
-        if (source == null || target == null) {
+    public void updateEntityFromRequest(Object origem, Object destino) {
+        if (origem == null || destino == null) {
             throw new IllegalArgumentException("Fonte e destino não podem ser nulos");
         }
-
-        Field[] fields = source.getClass().getDeclaredFields();
+        // Obtém todos os atributos declarados na classe do objeto "origem"
+        Field[] fields = origem.getClass().getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true); // Permite acesso a campos privados
+            field.setAccessible(true); // Permite acesso a atributos privados do objeto "origem"
             try {
-                Object value = field.get(source);
-                if (value != null) { // Apenas atualiza se o campo não for nulo
-                    Field targetField = target.getClass().getDeclaredField(field.getName());
+                // Acessa o valor do atributo representado por "field" no objeto "origem"
+                System.out.println("Acessa o valor do atributo representado por \"field\" no objeto \"origem\" " + field.get(origem));
+                Object value = field.get(origem);
+
+                if (value != null) { // Verifica se o valor do atributo de "origem" não é nulo
+
+                    // Localiza o campo correspondente na classe do objeto "destino" com o mesmo nome do atributo atual de "origem"
+                    Field targetField = destino.getClass().getDeclaredField(field.getName());
+
+                    // Torna acessível o atributo localizado no objeto "destino"
                     targetField.setAccessible(true);
-                    System.out.println("value => "+ value);
-                    System.out.println("target => "+ target);
-                    System.out.println("targetField => "+ targetField);
-                    targetField.set(target, value);
+                    System.out.println("value => " + value);
+                    System.out.println("target => " + destino);
+                    System.out.println("targetField => " + targetField);
+
+                    // Atualiza o valor do atributo do objeto "destino" com o valor do atributo correspondente no objeto "origem"
+                    targetField.set(destino, value);
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
+                // Captura exceções caso o atributo não exista em "destino" ou não seja acessível
                 System.out.println("Exception capturada");
             }
         }
