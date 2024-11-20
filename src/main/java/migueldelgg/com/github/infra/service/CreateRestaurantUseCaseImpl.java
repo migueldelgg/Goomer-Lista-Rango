@@ -14,6 +14,7 @@ import migueldelgg.com.github.infra.repository.AddresEntityRepository;
 import migueldelgg.com.github.infra.repository.OperationHoursEntityRepository;
 import migueldelgg.com.github.infra.repository.RestaurantEntityRepository;
 import migueldelgg.com.github.useCases.CreateRestaurantUseCase;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 
@@ -39,6 +40,7 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     }
 
     @Override
+    @Transactional
     public void execute(CreateRestaurantRequestBody requestBody) {
 
         validateRestaurant(requestBody);
