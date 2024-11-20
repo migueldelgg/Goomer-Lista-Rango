@@ -55,6 +55,4 @@ public class OperationHoursEntity implements Serializable {
 
     public OperationHoursEntity() {
     }
-
-    
 }

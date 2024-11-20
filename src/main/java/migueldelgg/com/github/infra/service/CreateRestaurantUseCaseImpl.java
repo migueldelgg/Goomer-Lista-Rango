@@ -1,5 +1,8 @@
 package migueldelgg.com.github.infra.service;
 
+import migueldelgg.com.github.infra.entity.WeekDay;
+import migueldelgg.com.github.infra.utils.ValidationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import migueldelgg.com.github.core.exception.SameDayException;
@@ -11,6 +14,9 @@ import migueldelgg.com.github.infra.repository.AddresEntityRepository;
 import migueldelgg.com.github.infra.repository.OperationHoursEntityRepository;
 import migueldelgg.com.github.infra.repository.RestaurantEntityRepository;
 import migueldelgg.com.github.useCases.CreateRestaurantUseCase;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalTime;
 
 @Service
 public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
@@ -20,10 +26,13 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     private final OperationHoursEntityRepository operationHoursRepo;
     private final ViaCepHttpCall viaCepHttpCall;
 
-    public CreateRestaurantUseCaseImpl(AddresEntityRepository addressRepo, 
-        OperationHoursEntityRepository operationHoursRepo, 
-        RestaurantEntityRepository restaurantRepo, 
-        migueldelgg.com.github.infra.service.ViaCepHttpCall viaCepHttpCall) {
+    @Autowired
+    private RestaurantValidationService validationService;
+
+    public CreateRestaurantUseCaseImpl(AddresEntityRepository addressRepo,
+        OperationHoursEntityRepository operationHoursRepo,
+        RestaurantEntityRepository restaurantRepo,
+        ViaCepHttpCall viaCepHttpCall) {
             this.addressRepo = addressRepo;
             this.operationHoursRepo = operationHoursRepo;
             this.restaurantRepo = restaurantRepo;
@@ -31,7 +40,10 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
     }
 
     @Override
+    @Transactional
     public void execute(CreateRestaurantRequestBody requestBody) {
+
+        validateRestaurant(requestBody);
 
         var viaCepResult = viaCepHttpCall.execute(requestBody.cep());
         String addressConstructor = viaCepResult.street() + ", "+ requestBody.number();
@@ -63,26 +75,22 @@ public class CreateRestaurantUseCaseImpl implements CreateRestaurantUseCase {
         addressRepo.saveAndFlush(address);
         restaurantRepo.saveAndFlush(restaurant);
         operationHoursRepo.saveAndFlush(operation);
-
-        System.out.println("address => " + address);
-        System.out.println("restaurant => " + restaurant);
-        System.out.println("operation => " + operation);
     }
 
     public void validateRestaurant(CreateRestaurantRequestBody dto) {
-        var restFromRepository = restaurantRepo.getRestaurantByName(dto.restaurantName());
+        String errorMessage = null;
 
-        String exMessage = dto.dayOfWeekStart().equals(dto.dayOfWeekEnd())
-                ? "O dia de início e o dia final não podem ser iguais."
-                : dto.restaurantName()
-                .equals(restFromRepository)
-                ? "Esse nome de restaurante não está disponível."
-                : !dto.startTime().isBefore(dto.endTime())
-                ? "Horário de funcionamento inválido."
-                : null;
+        if(ValidationUtils.isTheSameWeekDay(dto.dayOfWeekStart(), dto.dayOfWeekEnd()))
+            errorMessage = "O dia de início e o dia final não podem ser iguais.";
 
-        if (exMessage != null) {
-            throw new SameDayException(exMessage);
+        if(validationService.restaurantNameAlreadyExist(dto.restaurantName()) == true)
+            errorMessage = "Esse nome de restaurante não está disponível.";
+
+        if(ValidationUtils.endTimeIsBeforeStartTime(dto.startTime(), dto.endTime()))
+            errorMessage = "Horário de funcionamento inválido";
+
+        if (errorMessage != null) {
+            throw new SameDayException(errorMessage);
         }
     }
 }

@@ -1,5 +1,7 @@
 package migueldelgg.com.github.infra.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum WeekDay {
     MONDAY,
     TUESDAY,
@@ -7,6 +9,14 @@ public enum WeekDay {
     THURSDAY,
     FRIDAY,
     SATURDAY,
-    SUNDAY
+    SUNDAY;
+
+    @JsonCreator
+    public static WeekDay fromValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return WeekDay.valueOf(value.toUpperCase());
+    }
 }
 
