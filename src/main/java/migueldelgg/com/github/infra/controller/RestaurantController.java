@@ -51,7 +51,7 @@ public class RestaurantController {
     @PostMapping("/")
     public ResponseEntity<Void> create(@RequestBody CreateRestaurantRequestBody dto) {
         createRestaurantUseCase.execute(dto);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/{uuid}")
